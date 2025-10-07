@@ -42,14 +42,14 @@ export const gameEvents = (io: Server, socket: Socket) => {
     
     const roomId = rooms[socket.id];
     if (!roomId) {
-      console.error(`❌ No room found for player ${socket.id}`);
+      // console.error(`❌ No room found for player ${socket.id}`);
       socket.emit("error", "You are not in a game yet.");
       return;
     }
     
     const game = games[roomId];
     if (!game) {
-      console.error("❌ No game found for ID:");
+      // console.error("❌ No game found for ID:");
       return; // exit early
     }
     

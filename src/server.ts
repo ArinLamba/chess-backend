@@ -18,7 +18,7 @@ app.get("/api", (req, res) => {
 // Start Socket.IO
 const io = new Server(server, {
   cors: { 
-    origin: "http://localhost:3000", 
+    origin: process.env.HOST || "http://localhost:3000", 
     methods: ["GET", "POST"],
     credentials: true
   }
