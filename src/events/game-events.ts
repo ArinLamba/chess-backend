@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { Game } from "../chess/game";
 import { generateBoard } from "../chess/helpers/board-helper";
+import { SOCKET_EVENTS } from "@/lib/events";
 
 let waitingPlayers: Socket | null = null;
 const playerColor: Record<string, string> = {};
@@ -8,7 +9,7 @@ const games: Record<string, Game> = {};
 const rooms: Record<string, string> = {};
 
 export const gameEvents = (io: Server, socket: Socket) => {
-  socket.on("findMatch", () => {
+  socket.on(SOCKET_EVENTS.FIND_MATCH, () => {
     // search player on db or check it on front end first dont know now which approach to follow
     // if(!playerFound) {
     //   socket.emit("player-not-found");
@@ -18,6 +19,8 @@ export const gameEvents = (io: Server, socket: Socket) => {
     if(!waitingPlayers) {
       waitingPlayers = socket;
       playerColor[socket.id] = "white";
+
+      socket.emit(SOCKET_EVENTS.WAITING);
     } else {
       if(waitingPlayers === socket) return;
 
@@ -32,24 +35,31 @@ export const gameEvents = (io: Server, socket: Socket) => {
       playerColor[socket.id] = "black";
       games[roomId] = new Game(generateBoard(), "white");
 
-      io.to(roomId).emit("gameStarted", { roomId, players: [waitingPlayers.id, socket.id] });
+       io.to(roomId).emit(SOCKET_EVENTS.GAME_STARTED, { 
+        roomId, 
+        players: [waitingPlayers.id, socket.id],
+        colors: {
+          [waitingPlayers.id]: playerColor[waitingPlayers.id],
+          [socket.id]: playerColor[socket.id],
+        }
+      });
       waitingPlayers = null;
     }
 
   });
 
-  socket.on("move", (move) => {
+  socket.on(SOCKET_EVENTS.MOVE, (move) => {
     
     const roomId = rooms[socket.id];
     if (!roomId) {
-      // console.error(`❌ No room found for player ${socket.id}`);
-      socket.emit("error", "You are not in a game yet.");
+      console.error(`❌ No room found for player ${socket.id}`);
+      // socket.emit("error", "You are not in a game yet.");
       return;
     }
     
     const game = games[roomId];
     if (!game) {
-      // console.error("❌ No game found for ID:");
+      console.error("❌ No game found for ID:");
       return; // exit early
     }
     
@@ -62,7 +72,7 @@ export const gameEvents = (io: Server, socket: Socket) => {
     const moveInfo = game.getMoveInfo();
     if(game.detectCheckMate()) io.to(roomId).emit("gameOver");
     
-    io.to(roomId).emit("opponentMove", [from, to, moveInfo]);
+    io.to(roomId).emit(SOCKET_EVENTS.OPPONENT_MOVE, [from, to, moveInfo]);
   });
 
 

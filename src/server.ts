@@ -4,6 +4,10 @@ import { Server } from "socket.io";
 import cors from "cors";
 import registerEvents from "./events";
 
+import dotenv from "dotenv";
+dotenv.config();
+
+
 const app = express();
 const server = http.createServer(app);
 
@@ -21,10 +25,11 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  // console.log("🔌 Client connected:", socket.id);
+  console.log("🔌 Client connected:", socket.id);
   registerEvents(io, socket);
 });
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`🚀 Backend with Express + Socket.IO running on ${PORT}`);
+
+const port = process.env.PORT || 4000;
+server.listen(port, () => {
+  console.log(`🚀 Backend with Express + Socket.IO running on ${port}`);
 });
