@@ -9,12 +9,20 @@ export type Position = [number, number];
 export type BoardType = (Piece | null)[][];
 
 export type MoveInfo = {
-  piece: PieceType
+  piece: PieceType;
+  color: PieceColor;
   from: Position;
   to: Position;
-  color: PieceColor;
+
   captured: boolean;
+  capturedPiece?: Piece;      // store captured piece if any
+  
+  prevHasMoved: boolean;      // useful for king/rook (castling)
+
   isCastling: "kingside" | "queenside" | null;
+  isPromotion: boolean;
+  promotedPiece?: Piece;      // original piece before promotion
+  
   isCheck: boolean;
   isCheckmate: boolean;
-}
+};

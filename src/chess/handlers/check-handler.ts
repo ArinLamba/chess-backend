@@ -5,22 +5,20 @@ import { Game } from "@/chess/game"
 
 export class CheckHandler {
 
-  static buildAttackMap(board: BoardType, attackerColor: PieceColor): boolean[][] {
-    const attacked = Array.from({ length: 8 }, () => Array(8).fill(false));
+  static isSquareAttacked(target: Position, attackerColor: PieceColor, board: BoardType): boolean {
+    const [tr, tc] = target;
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         const piece = board[r][c];
-        if(piece?.type === "king") continue;
-        if(piece && piece.color === attackerColor) {
-          const moves = piece.getValidMoves(r, c, board);
-          for(const [mr, mc] of moves) attacked[mr][mc] = true;
-        }
+        if (!piece || piece.color !== attackerColor) continue;
+        const moves = piece.getValidMoves(r, c, board);
+        if (moves.some(([mr, mc]) => mr === tr && mc === tc)) return true;
       }
     }
-    return attacked;
+    return false;
   }
   
-  static findKing(board: BoardType, color: PieceColor): Position | null {
+  private static findKing(board: BoardType, color: PieceColor): Position | null {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         const p = board[r][c];
@@ -34,13 +32,10 @@ export class CheckHandler {
     const kingPos = this.findKing(board, color);
     if (!kingPos) return false;
     const attackerColor: PieceColor = color === "white" ? "black" : "white";
-    const attackMap = this.buildAttackMap(board, attackerColor);
-    const[kr, kc] = kingPos;
-
-    return attackMap[kr][kc];
+    return this.isSquareAttacked(kingPos, attackerColor, board);
   }
 
-  static hasLegalMoves(game: Game, color: PieceColor): boolean {
+  private static hasLegalMoves(game: Game, color: PieceColor): boolean {
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
           const piece = game.board[r][c];
@@ -56,5 +51,9 @@ export class CheckHandler {
     const hasMoves = this.hasLegalMoves(game, color); // example call — adapt logic for your needs
     return inCheck && !hasMoves;
   }
+
+
 }
+
+
 
